@@ -30,20 +30,30 @@ def pre_processing(data):
 
     le = LabelEncoder()
 
-    print(data.job.value_counts())
     data['job_encoded'] = le.fit_transform(data.job)
     data['marital_encoded'] = le.fit_transform(data.marital)
     data['education_encoded'] = le.fit_transform(data.education)
+    data['default_encoded'] = le.fit_transform(data.default)
+    data['housing_encoded'] = le.fit_transform(data.housing)
+    data['loan_encoded'] = le.fit_transform(data.loan)
+    data['contact_encoded'] = le.fit_transform(data.contact)
+    data['month_encoded'] = le.fit_transform(data.month)
+    data['poutcome_encoded'] = le.fit_transform(data.poutcome)
+    data['y_encoded'] = le.fit_transform(data.y)
+
+    data_numeric = data[['age', 'job_encoded', 'marital_encoded', 'education_encoded', 'default_encoded', 'balance',
+                         'housing_encoded', 'loan_encoded', 'contact_encoded', 'day', 'month_encoded',
+                         'duration', 'campaign', 'pdays', 'previous', 'poutcome_encoded', 'y_encoded']].copy()
 
     print("finished")
-    return data
+    return data_numeric
 
 
 def main():
     data = import_data()
-    data = pre_processing(data)
+    data_numeric = pre_processing(data)
 
-    print(data.head())
+    print(data_numeric.head())
 
     # X_train, X_test, y_train, y_test = training_testing_split(data)
 
