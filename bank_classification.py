@@ -1,14 +1,14 @@
 # !/usr/bin/env python3
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
 import shap
 import matplotlib.pyplot as plt
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
 import scipy as sc
 from imblearn.over_sampling import SMOTE
 from collections import Counter
@@ -19,10 +19,12 @@ def import_data():
 
 
 def pre_processing(data):
-    X_train, X_test, y_train, y_test = train_test_split(data.drop(['y_encoded'], axis=1), data['y_encoded'])
+    X = data.drop(['y_encoded'], axis=1)
+    y = data['y_encoded']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
     print(Counter(y_train).items())
     X_train_resampled, y_train_resampled = SMOTE().fit_resample(X_train, y_train)
-    print(Counter(y_train).items())
+    print(Counter(y_train_resampled).items())
     # scaler = StandardScaler()
     # scaler.fit(X_train)
     # scaler.transform(X_train)
@@ -81,6 +83,20 @@ def mlp_model(X_train, y_train, X_test, y_test):
 
     # sklearn neural network
     # mlpc = MLPClassifier(learning_rate_init=0.07, activation='logistic', hidden_layer_sizes=5, max_iter=500)
+
+    # what hyperparameters tuning for
+    # What are some reasonable ranges
+    # What metrics?
+    # How determine if one set of combinations outperforms another
+
+    steps = [('MLP', MLPClassifier())]
+
+    pipeline = Pipeline(steps)
+
+    parameters = {'MLP_?': [8, 16]}
+
+    grid = GridSearchCV(pipeline, param_grid=parameters, )
+
     mlpc = MLPClassifier(hidden_layer_sizes=[8])
     mlpc.fit(X_train, y_train)
 
