@@ -30,6 +30,7 @@ def pre_processing(data):
     # scaler.transform(X_train)
     # scaler.transform(X_test)
 
+    # return X_train, X_test, y_train, y_test
     return X_train_resampled, X_test, y_train_resampled, y_test
 
 
@@ -93,14 +94,16 @@ def mlp_model(X_train, y_train, X_test, y_test):
 
     pipeline = Pipeline(steps)
 
-    parameters = {'MLP_?': [8, 16]}
+    parameters = {'MLP__hidden_layer_sizes': [(8,), (8, 8)]}
 
-    grid = GridSearchCV(pipeline, param_grid=parameters, )
+    grid = GridSearchCV(pipeline, param_grid=parameters)
 
-    mlpc = MLPClassifier(hidden_layer_sizes=[8])
-    mlpc.fit(X_train, y_train)
+    grid.fit(X_train, y_train)
+    print(grid.best_params_)
+    print(grid.best_score_)
 
-    return mlpc
+    # mlpc = MLPClassifier(hidden_layer_sizes=[8])
+    # mlpc.fit(X_train, y_train)
 
 
 def model_performance(mlpc, X_test, y_test):
@@ -138,7 +141,7 @@ def main():
 
     mlpc = mlp_model(X_train, y_train, X_test, y_test)
 
-    model_performance(mlpc, X_test, y_test)
+    # model_performance(mlpc, X_test, y_test)
 
     # shap_usage(X_train, X_test, mlpc)
 
