@@ -2,9 +2,9 @@
 
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, roc_auc_score, plot_roc_curve
 import shap
 import matplotlib.pyplot as plt
 from sklearn.model_selection import RandomizedSearchCV
@@ -12,6 +12,7 @@ from sklearn.pipeline import Pipeline
 import scipy as sc
 from imblearn.over_sampling import SMOTE
 from collections import Counter
+from sklearn.compose import ColumnTransformer
 
 
 def import_data():
@@ -19,19 +20,22 @@ def import_data():
 
 
 def pre_processing(data):
-    X = data.drop(['y_encoded'], axis=1)
-    y = data['y_encoded']
+    numerical_features = data.select_dtypes(include='int64')
+    categorical_features = data.select_dtypes(include='object')
+    X = data.drop(['y'], axis=1)
+    y = data['y']
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
     print(Counter(y_train).items())
     X_train_resampled, y_train_resampled = SMOTE().fit_resample(X_train, y_train)
     print(Counter(y_train_resampled).items())
+
     # scaler = StandardScaler()
     # scaler.fit(X_train)
     # scaler.transform(X_train)
     # scaler.transform(X_test)
 
-    # return X_train, X_test, y_train, y_test
-    return X_train_resampled, X_test, y_train_resampled, y_test
+    return X_train, X_test, y_train, y_test, numerical_features, categorical_features
+    # return X_train_resampled, X_test, y_train_resampled, y_test
 
 
 # Data pre-processing / cleaning etc. - data preparation is right name??
@@ -55,77 +59,83 @@ def data_preparation(data):
     data['poutcome_encoded'] = le.fit_transform(data.poutcome)
     data['y_encoded'] = le.fit_transform(data.y)
 
-    data_numeric = data[['age', 'job_encoded', 'marital_encoded', 'education_encoded', 'default_encoded', 'balance',
-                         'housing_encoded', 'loan_encoded', 'contact_encoded', 'day', 'month_encoded',
-                         'duration', 'campaign', 'pdays', 'previous', 'poutcome_encoded', 'y_encoded']].copy()
+    # data_numeric = data[['age', 'job_encoded', 'marital_encoded', 'education_encoded', 'default_encoded', 'balance',
+    #                      'housing_encoded', 'loan_encoded', 'contact_encoded', 'day', 'month_encoded',
+    #                      'duration', 'campaign', 'pdays', 'previous', 'poutcome_encoded', 'y_encoded']].copy()
 
-    # data_numeric = data[['age', 'default_encoded', 'balance', 'housing_encoded', 'loan_encoded', 'duration', 'campaign', 'pdays', 'previous', 'poutcome_encoded', 'y_encoded']].copy()
+    data_numeric = data[
+        ['age', 'default_encoded', 'balance', 'housing_encoded', 'loan_encoded', 'duration', 'campaign', 'pdays',
+         'previous', 'poutcome_encoded', 'y_encoded']].copy()
 
     return data_numeric
 
 
-def mlp_model(X_train, y_train, X_test, y_test):
+def mlp_model(data):
+    numerical_features = data.select_dtypes(include='int64').columns
+    categorical_features = data.select_dtypes(include='object').drop(['y'], axis=1).columns
+    X = data.drop(['y'], axis=1)
+    y = data['y']
 
-    # # Apply Standard scaling to get better results
-    # sc = StandardScaler()
-    # X_train = sc.fit_transform(X_train)
-    # X_test = sc.transform(X_test)
+    numerical_transformer = Pipeline(steps=[('scalar', StandardScaler())])
+    categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder())])
 
-    # pipeline = make_pipeline(StandardScaler(), MLPClassifier(hidden_layer_sizes=8))
-    # #
-    # # Create the randomized search estimator
-    # #
-    # param_distributions = [{'mlp__C': sc.stats.expon(scale=100)}]
-    # rs = RandomizedSearchCV(estimator=pipeline, param_distributions=param_distributions,
-    #                         cv=10, scoring='accuracy', refit=True, n_jobs=1,
-    #                         random_state=1)
-    #
-    # rs.fit(X_train, y_train)
+    preprocessor = ColumnTransformer(transformers=[
+        ('numerical', numerical_transformer, numerical_features),
+        ('categorical', categorical_transformer, categorical_features)])
 
-    # sklearn neural network
-    # mlpc = MLPClassifier(learning_rate_init=0.07, activation='logistic', hidden_layer_sizes=5, max_iter=500)
+    # preprocessor.fit_transform(X, y)
 
-    # what hyperparameters tuning for
-    # What are some reasonable ranges
-    # What metrics?
-    # How determine if one set of combinations outperforms another
+    # smt = SMOTE(random_state=42)
 
-    steps = [('MLP', MLPClassifier())]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y)
+    # print(Counter(y_train).items())
+    # X_train, y_train = SMOTE().fit_resample(X_train, y_train)
+
+    steps = [('preprocessor', preprocessor),
+             ('MLP', MLPClassifier(hidden_layer_sizes=[8, 8], activation='logistic'))]
 
     pipeline = Pipeline(steps)
 
-    parameters = {'MLP__hidden_layer_sizes': [(8,), (8, 8)]}
+    pipeline.fit(X_train, y_train)
 
-    grid = GridSearchCV(pipeline, param_grid=parameters)
+    # parameters = {'MLP__hidden_layer_sizes': [8, 9, (8, 8), (9, 9)], 'MLP__activation': ['logistic', 'tanh', 'relu']}
+    #
+    # grid = GridSearchCV(pipeline, param_grid=parameters, scoring='roc_auc')
+    #
+    # grid.fit(X_train, y_train)
+    # print(grid.best_params_)
+    # # print(grid.best_score_)
+    # print(grid.cv_results_)
 
-    grid.fit(X_train, y_train)
-    print(grid.best_params_)
-    print(grid.best_score_)
-
-    # mlpc = MLPClassifier(hidden_layer_sizes=[8])
+    # mlpc = MLPClassifier(hidden_layer_sizes=[48, 20, 15], activation='logistic')
     # mlpc.fit(X_train, y_train)
+
+    model_performance(pipeline, X_test, y_test)
 
 
 def model_performance(mlpc, X_test, y_test):
     pred_mlpc = mlpc.predict(X_test)
     print(str(classification_report(y_test, pred_mlpc)) + "\n")
-    print(str(confusion_matrix( y_test, pred_mlpc)) + "\n\n")
+    print(str(confusion_matrix(y_test, pred_mlpc)) + "\n\n")
 
-    fpr, tpr, thresholds = roc_curve(y_test[:-1], pred_mlpc[:-1])
-    auc_mlp = auc(fpr, tpr)
-
-    plt.figure(figsize=(5, 5), dpi=100)
-    plt.plot(fpr, tpr, linestyle='-', label='MLP (auc = %0.3f)' % auc_mlp)
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.legend()
+    plot_roc_curve(mlpc, X_test, y_test)
     plt.show()
+
+    # fpr, tpr, thresholds = roc_curve(y_test[:-1], pred_mlpc[:-1])
+    # auc_mlp = auc(fpr, tpr)
+    #
+    # plt.figure(figsize=(5, 5), dpi=100)
+    # plt.plot(fpr, tpr, linestyle='-', label='MLP (auc = %0.3f)' % auc_mlp)
+    # plt.xlabel("False Positive Rate")
+    # plt.ylabel("True Positive Rate")
+    # plt.legend()
+    # plt.show()
 
 
 def shap_usage(X_train, X_test, mlpc):
     explainer = shap.KernelExplainer(mlpc.predict_proba, X_train)
-    shap_values = explainer.shap_values(X_test.iloc[0,:])
-    shap.force_plot(explainer.expected_value[0], shap_values[0], X_test.iloc[0,:], matplotlib=True)
+    shap_values = explainer.shap_values(X_test.iloc[0, :])
+    shap.force_plot(explainer.expected_value[0], shap_values[0], X_test.iloc[0, :], matplotlib=True)
 
     # shap_values = explainer.shap_values(X_test)
     # shap.force_plot(explainer.expected_value[0], shap_values[0], X_test)
@@ -135,13 +145,8 @@ def main():
     shap.initjs()
 
     data = import_data()
-    data_numeric = data_preparation(data)
 
-    X_train, X_test, y_train, y_test = pre_processing(data_numeric)
-
-    mlpc = mlp_model(X_train, y_train, X_test, y_test)
-
-    # model_performance(mlpc, X_test, y_test)
+    mlp_model(data)
 
     # shap_usage(X_train, X_test, mlpc)
 
