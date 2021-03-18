@@ -7,14 +7,15 @@ import shap
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import confusion_matrix, classification_report, plot_roc_curve
+from sklearn.metrics import confusion_matrix, classification_report, plot_roc_curve, plot_confusion_matrix, roc_auc_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder, OneHotEncoder, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
 
 
 def import_data():
-    return pd.read_csv("data/bank/bank.csv", sep=";")
+    return pd.read_csv("data/bank-additional/bank-additional-full.csv", sep=";")
 
 
 def grid_search(pipeline, X_train, y_train):
@@ -33,15 +34,20 @@ def grid_search(pipeline, X_train, y_train):
 def mlp_model(data):
     numerical_features = data.select_dtypes(include='int64').columns
     categorical_features = data.select_dtypes(include='object').drop(['y'], axis=1).columns
+    # target_variable = data.iloc['poutcome']
     X = data.drop(['y'], axis=1)
     y = data['y']
 
     numerical_transformer = Pipeline(steps=[('scalar', StandardScaler())])
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder())])
+    # categorical_transformer = Pipeline(steps=[('ordinal', OrdinalEncoder())])
+    # target_variable_transformer = Pipeline(steps=[('label', LabelEncoder())])
 
     preprocessor = ColumnTransformer(transformers=[
         ('numerical', numerical_transformer, numerical_features),
-        ('categorical', categorical_transformer, categorical_features)])
+        ('categorical', categorical_transformer, categorical_features),
+        # ('label', target_variable_transformer, target_variable)
+    ])
 
     smt = SMOTE(random_state=0)
 
@@ -49,7 +55,11 @@ def mlp_model(data):
 
     steps = [('preprocessor', preprocessor),
              ('smote', smt),
-             ('MLP', MLPClassifier(hidden_layer_sizes=[8, 8], random_state=0))]
+             ('MLP', MLPClassifier(hidden_layer_sizes=297, random_state=0, alpha=0.0029797690517799937, learning_rate_init=0.06258315722416379,
+                                   momentum=0.057971214902612256, solver='sgd', validation_fraction=0.1, warm_start=True, nesterovs_momentum=True,
+                                   early_stopping=False, beta_1=0.9))
+             # ('RandomForest', RandomForestClassifier())
+             ]
 
     pipeline = Pipeline(steps)
 
@@ -65,7 +75,9 @@ def mlp_model(data):
 def model_performance(pipeline, X_test, y_test):
     pred_mlpc = pipeline.predict(X_test)
     print(str(classification_report(y_test, pred_mlpc)) + "\n")
-    print(str(confusion_matrix(y_test, pred_mlpc)) + "\n")
+    # print(str(confusion_matrix(y_test, pred_mlpc)) + "\n")
+    plot_confusion_matrix(pipeline, X_test, y_test)
+    plt.show()
 
     plot_roc_curve(pipeline, X_test, y_test)
     plt.show()
