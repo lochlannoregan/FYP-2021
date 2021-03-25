@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 def import_data():
-    return pd.read_csv("data/bank-additional/bank-additional-full.csv", sep=";")
+    return pd.read_csv("data/bank/bank.csv", sep=";")
 
 
 def grid_search(pipeline, X_train, y_train):
@@ -34,7 +34,7 @@ def grid_search(pipeline, X_train, y_train):
 def mlp_model(data):
     numerical_features = data.select_dtypes(include='int64').columns
     categorical_features = data.select_dtypes(include='object').drop(['y'], axis=1).columns
-    # target_variable = data.iloc['poutcome']
+
     X = data.drop(['y'], axis=1)
     y = data['y']
 
@@ -67,9 +67,9 @@ def mlp_model(data):
 
     model_performance(pipeline, X_test, y_test)
 
-    # X_train_transformed = pipeline.named_steps['preprocessor'].fit_transform(X_train)
-    # X_test_transformed = pipeline.named_steps['preprocessor'].fit(X_train).transform(X_test)
-    # shap_usage(X_train_transformed, X_test_transformed, pipeline)
+    X_train_transformed = pipeline.named_steps['preprocessor'].fit_transform(X_train)
+    X_test_transformed = pipeline.named_steps['preprocessor'].fit(X_train).transform(X_test)
+    shap_usage(X_train_transformed, X_test_transformed, pipeline)
 
 
 def model_performance(pipeline, X_test, y_test):
