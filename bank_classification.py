@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import shap
 from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline, make_pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import confusion_matrix, classification_report, plot_roc_curve, plot_confusion_matrix, roc_auc_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, OneHotEncoder, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn import set_config
+set_config(display='diagram')
 
 def import_data():
     return pd.read_csv("data/bank/bank.csv", sep=";")
