@@ -1,4 +1,3 @@
-import pandas
 import matplotlib.pyplot as plt
 from sklearn import model_selection
 from sklearn.ensemble import RandomForestClassifier
@@ -22,22 +21,23 @@ def compare_models():
     models.append(('KNN', KNeighborsClassifier()))
     models.append(('CART', DecisionTreeClassifier()))
     models.append(('NB', GaussianNB()))
-    models.append(('SVM', SVC()))
     models.append(('MLP', MLPClassifier()))
+    models.append(('SVC', SVC()))
+    models.append(('HGBC', RandomForestClassifier()))
     # evaluate each model in turn
     results = []
     names = []
-    scoring = 'accuracy'
+    scoring_metric_selected='f1'
     for name, model in models:
         kfold = model_selection.KFold(n_splits=10)
-        cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring='roc_auc')
+        cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring_metric_selected)
         results.append(cv_results)
         names.append(name)
         msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
         print(msg)
     # boxplot algorithm comparison
     fig = plt.figure()
-    fig.suptitle('Algorithm Comparison')
+    fig.suptitle('Algorithm Comparison', 'with', scoring_metric_selected, 'metric')
     ax = fig.add_subplot(111)
     plt.boxplot(results)
     ax.set_xticklabels(names)
