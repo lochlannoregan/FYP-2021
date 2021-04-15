@@ -2,10 +2,9 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.neural_network import MLPClassifier
 
 from bank_dataset_preprocessing import load_and_preprocess
-from bank_mlp_model import train_model
 
 
-def hyper_parameter_search(X_train, y_train):
+def hyper_parameter_search(X_test, y_test):
     mlp_classifier = MLPClassifier()
 
     parameters = {
@@ -17,12 +16,12 @@ def hyper_parameter_search(X_train, y_train):
 
     grid = GridSearchCV(mlp_classifier, param_grid=parameters, scoring='roc_auc', cv=5)
 
-    grid.fit(X_train, y_train)
+    grid.fit(X_test, y_test)
     print(grid.best_params_)
     print(grid.best_score_)
     print(grid.cv_results_)
 
 
 if __name__ == "__main__":
-    X, y = load_and_preprocess()
-    hyper_parameter_search(X, y)
+    X, y, X_train, X_test, y_train, y_test = load_and_preprocess()
+    hyper_parameter_search(X_test, y_test)

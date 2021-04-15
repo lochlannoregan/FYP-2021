@@ -1,7 +1,8 @@
+import joblib
 import pandas as pd
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import joblib
 
 
 def load_and_preprocess():
@@ -31,23 +32,37 @@ def load_and_preprocess():
 
     y = y.replace(binary_features_mapping)
 
-    # Scaling
-    scaler = StandardScaler()
-    scaler.fit(X[numerical_features])
-    X[numerical_features] = scaler.transform(X[numerical_features])
-
     X_dummies = pd.get_dummies(X[categorical_features_nominal], drop_first=True)
     X = X.drop(categorical_features_nominal, axis='columns')
     X = pd.concat([X, X_dummies], axis='columns')
 
-    # print(y_train.describe())
-    # X_train, y_train = SMOTE(random_state=0).fit_resample(X_train, y_train)
-    # print(y_train.describe())
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.33, random_state=42)
 
-    joblib.dump(X, "X.joblib")
-    joblib.dump(y, "y.joblib")
+    scaler = StandardScaler()
+    scaler.fit(X_train.loc[:, numerical_features])
+    X_train.loc[:, numerical_features] = scaler.transform(X_train.loc[:, numerical_features])
+    X_test.loc[:, numerical_features] = scaler.transform(X_test.loc[:, numerical_features])
 
-    return X, y
+    X.loc[:, numerical_features] = scaler.transform(X.loc[:, numerical_features])
+
+    joblib.dump(X, "saved-model-computation/X.joblib")
+    joblib.dump(y, "saved-model-computation/.joblib")
+    joblib.dump(X_train, "saved-model-computation/X_train.joblib")
+    joblib.dump(X_test, "saved-model-computation/X_test.joblib")
+    joblib.dump(y_train, "saved-model-computation/y_train.joblib")
+    joblib.dump(X_test, "saved-model-computation/y_test.joblib")
+
+    return X, y, X_train, X_test, y_train, y_test
+
+
+def load_preprocessed_data():
+    X = joblib.load("saved-model-computation/X.joblib")
+    y = joblib.load("saved-model-computation/y.joblib")
+    X_train = joblib.load("saved-model-computation/X_train.joblib")
+    X_test = joblib.load("saved-model-computation/X_test.joblib")
+    y_train = joblib.load("saved-model-computation/y_train.joblib")
+    y_test = joblib.load("saved-model-computation/y_test.joblib")
+    return X, y, X_train, X_test, y_train, y_test
 
 
 if __name__ == "__main__":

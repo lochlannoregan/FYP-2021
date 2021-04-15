@@ -13,23 +13,21 @@ from bank_dataset_preprocessing import load_and_preprocess
 
 def compare_models():
 
-    X, y = load_and_preprocess()
+    X, y, X_train, X_test, y_train, y_test = load_and_preprocess()
 
     models = []
-    models.append(('LR', LogisticRegression()))
-    models.append(('LDA', LinearDiscriminantAnalysis()))
     models.append(('KNN', KNeighborsClassifier()))
     models.append(('CART', DecisionTreeClassifier()))
     models.append(('NB', GaussianNB()))
     models.append(('MLP', MLPClassifier()))
     models.append(('SVC', SVC()))
-    models.append(('HGBC', RandomForestClassifier()))
+    models.append(('RF', RandomForestClassifier()))
     # evaluate each model in turn
     results = []
     names = []
     scoring_metric_selected='f1'
     for name, model in models:
-        kfold = model_selection.KFold(n_splits=10)
+        kfold = model_selection.KFold(n_splits=5)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring_metric_selected)
         results.append(cv_results)
         names.append(name)
@@ -37,7 +35,7 @@ def compare_models():
         print(msg)
     # boxplot algorithm comparison
     fig = plt.figure()
-    fig.suptitle('Algorithm Comparison', 'with', scoring_metric_selected, 'metric')
+    fig.suptitle("Algorithm Comparison with " + str(scoring_metric_selected) + ' metric')
     ax = fig.add_subplot(111)
     plt.boxplot(results)
     ax.set_xticklabels(names)
