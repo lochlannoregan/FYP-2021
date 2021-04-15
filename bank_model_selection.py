@@ -25,7 +25,7 @@ def compare_models():
     # evaluate each model in turn
     results = []
     names = []
-    scoring_metric_selected='f1'
+    scoring_metric_selected='roc_auc'
     for name, model in models:
         kfold = model_selection.KFold(n_splits=5)
         cv_results = model_selection.cross_val_score(model, X, y, cv=kfold, scoring=scoring_metric_selected)

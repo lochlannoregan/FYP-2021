@@ -24,3 +24,12 @@ def learning_curve_calculation(mlp_classifier, X, y):
 
 
     # scores = cross_validate(mlp_classifier, X_test, y_test, scoring=['roc_auc'], cv=5)
+
+
+
+    # Cross validation?
+    # cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    # # evaluate model
+    # scores = cross_val_score(pipeline, X, y, scoring='roc_auc', cv=cv, n_jobs=-1)
+    #
+    # print('Mean ROC AUC: %.3f' % mean(scores))
