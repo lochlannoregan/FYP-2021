@@ -36,6 +36,14 @@ def load_and_preprocess():
     X = X.drop(categorical_features_nominal, axis='columns')
     X = pd.concat([X, X_dummies], axis='columns')
 
+    # Incorrect ordinal encoding of categorical nominal features
+    # for feature in categorical_features_nominal:
+    #     unique_values = X[feature].unique()
+    #     feature_dict_mapping = {}
+    #     for i, value in enumerate(unique_values):
+    #         feature_dict_mapping[value] = i
+    #     X[feature] = X[feature].replace(feature_dict_mapping)
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.33, random_state=42)
 
     scaler = StandardScaler()
