@@ -1,6 +1,6 @@
 import joblib
 import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, plot_roc_curve, plot_confusion_matrix
+from sklearn.metrics import classification_report, plot_roc_curve, plot_confusion_matrix, plot_precision_recall_curve
 from sklearn.neural_network import MLPClassifier
 
 from bank_dataset_preprocessing import load_and_preprocess
@@ -13,9 +13,11 @@ def train_model(X, y, X_train, X_test, y_train, y_test):
 
     print(str(classification_report(y_test, prediction_mlp)) + "\n")
     plot_confusion_matrix(mlp_classifier, X_test, y_test)
-    plt.show()
 
     plot_roc_curve(mlp_classifier, X_test, y_test)
+
+    plot_precision_recall_curve(mlp_classifier, X_test, y_test)
+    
     plt.show()
 
     joblib.dump(mlp_classifier, "saved-model-computation/mlp_classifier.joblib")
