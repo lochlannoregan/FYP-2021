@@ -1,5 +1,6 @@
 import joblib
 import pandas as pd
+from imblearn.over_sampling import SMOTE
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -9,12 +10,12 @@ def load_and_preprocess():
     data = pd.read_csv("data/bank-additional/bank-additional-full.csv", sep=";")
 
     numerical_features = ['age', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'cons.price.idx', 'cons.conf.idx',
-                          'euribor3m', 'nr.employed', 'duration']
+                          'euribor3m', 'nr.employed']
     categorical_features_nominal = ['job', 'marital', 'contact', 'month', 'day_of_week', 'poutcome']
     categorical_features_binary = ['default', 'housing', 'loan']
     categorical_features_unknown_values = ['education', 'default', 'housing', 'loan', 'job', 'marital']
 
-    X = data.drop(['y'], axis=1)
+    X = data.drop(['y', 'duration'], axis=1)
     y = data['y']
 
     education_ordinal_mapping = {'illiterate': 0, 'basic.4y': 1, 'basic.6y': 2, 'basic.9y': 3, 'high.school': 4,
@@ -37,6 +38,11 @@ def load_and_preprocess():
     X = pd.concat([X, X_dummies], axis='columns')
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.33, random_state=42)
+
+    # print(y_train.value_counts())
+    # smt = SMOTE()
+    # X_train, y_train = smt.fit_resample(X_train, y_train)
+    # print(y_train.value_counts())
 
     scaler = StandardScaler()
     scaler.fit(X_train.loc[:, numerical_features])

@@ -31,10 +31,10 @@ def grid_search(pipeline, X, y):
 
 
 def mlp_model(data):
-    numerical_features = data.select_dtypes(include='int64').columns
+    numerical_features = data.select_dtypes(include='int64').drop(['duration'], axis=1).columns
     categorical_features = data.select_dtypes(include='object').drop(['y'], axis=1).columns
 
-    X = data.drop(['y'], axis=1)
+    X = data.drop(['y', 'duration'], axis=1)
     y = data['y']
 
     numerical_transformer = Pipeline(steps=[('scalar', StandardScaler())])
@@ -87,7 +87,7 @@ def shap_usage(X_train, X_test, mlpc):
 
 def main():
     data = import_data()
-    pipeline, X, y= mlp_model(data)
+    pipeline, X, y = mlp_model(data)
     # grid_search(pipeline, X, y)
 
 
