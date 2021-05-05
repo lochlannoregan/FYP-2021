@@ -1,13 +1,12 @@
 import matplotlib.pyplot as plt
 from sklearn import model_selection
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+
 from bank_dataset_preprocessing import load_and_preprocess
 
 

@@ -1,6 +1,5 @@
 import joblib
 import pandas as pd
-from imblearn.over_sampling import SMOTE
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -38,11 +37,6 @@ def load_and_preprocess():
     X = pd.concat([X, X_dummies], axis='columns')
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.33, random_state=42)
-
-    # print(y_train.value_counts())
-    # smt = SMOTE()
-    # X_train, y_train = smt.fit_resample(X_train, y_train)
-    # print(y_train.value_counts())
 
     scaler = StandardScaler()
     scaler.fit(X_train.loc[:, numerical_features])
