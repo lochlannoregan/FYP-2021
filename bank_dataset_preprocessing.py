@@ -46,7 +46,7 @@ def load_and_preprocess():
     X.loc[:, numerical_features] = scaler.transform(X.loc[:, numerical_features])
 
     joblib.dump(X, "saved-model-computation/X.joblib")
-    joblib.dump(y, "saved-model-computation/.joblib")
+    joblib.dump(y, "saved-model-computation/y.joblib")
     joblib.dump(X_train, "saved-model-computation/X_train.joblib")
     joblib.dump(X_test, "saved-model-computation/X_test.joblib")
     joblib.dump(y_train, "saved-model-computation/y_train.joblib")
